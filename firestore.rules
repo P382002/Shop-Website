@@ -5,7 +5,7 @@ service cloud.firestore {
     // >>> Replace with the email you use to log in to the admin panel <<<
     function isAdmin() {
       return request.auth != null
-          && request.auth.token.email == 'OWNER_EMAIL_HERE';
+          && request.auth.token.email == 'srivignarajafabrics@gmail.com';
     }
 
     function validOrder() {
