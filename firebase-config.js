@@ -1,10 +1,11 @@
 // Paste your Firebase web-app config here (Firebase Console > Project settings > Your apps > Web app).
 // These values are safe to be public; your data is protected by firestore.rules.
+// Firebase configuration for Sri Vignaraja Fabrics
 export const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "PASTE_YOUR_PROJECT_ID",
-  storageBucket: "PASTE_YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID",
-  appId: "PASTE_YOUR_APP_ID"
+  apiKey: "AIzaSyDiHKYa2ivuWHVXACgBvhbq1zK10P33D0A",
+  authDomain: "sri-vignaraja-fabrics.firebaseapp.com",
+  projectId: "sri-vignaraja-fabrics",
+  storageBucket: "sri-vignaraja-fabrics.firebasestorage.app",
+  messagingSenderId: "771845214325",
+  appId: "1:771845214325:web:d9e52c4cd2842573c9283c"
 };
