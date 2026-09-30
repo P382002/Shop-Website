@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // >>> Replace with the email you use to log in to the admin panel <<<
+    function isAdmin() {
+      return request.auth != null
+          && request.auth.token.email == 'OWNER_EMAIL_HERE';
+    }
+
+    function validOrder() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['name','phone','address','payment','items','total','status','stockDeducted','time'])
+          && d.status == 'Pending'
+          && d.stockDeducted == false
+          && d.time == request.time
+          && d.name is string && d.name.size() > 0 && d.name.size() <= 100
+          && d.phone is string && d.phone.size() == 10
+          && d.address is string && d.address.size() > 0 && d.address.size() <= 500
+          && d.payment in ['whatsapp','cod','online']
+          && d.items is list && d.items.size() > 0 && d.items.size() <= 30
+          && d.total is number && d.total > 0;
+    }
+
+    // Everyone can see products and shop info; only the owner can change them
+    match /products/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Customers can only CREATE orders; only the owner can read/update them
+    match /orders/{id} {
+      allow create: if validOrder();
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}
