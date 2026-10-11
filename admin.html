@@ -98,6 +98,8 @@ function start(){
   let products = [], orders = [];
   let settings = { shopName:'Sri Vignaraja Fabrics', whatsapp:'', upiId:'' };
   let editingId = null;       // product being edited
+  let prodQuery = '';         // product search text
+  let ordQuery = '', fDate = 'all', fFrom = '', fTo = '', fSource = 'all', fStatus = 'all';  // order search + filters
   let formImages = [];        // photos in the product form (base64), max 4, first = main photo
   let dataError = '';
   let unsubs = [];
@@ -105,7 +107,11 @@ function start(){
 
   /* ---------- Helpers ---------- */
   function route(){ return location.hash.slice(1) || '/dashboard'; }
-  window.addEventListener('hashchange', ()=>{ editingId = null; formImages = []; render(); });
+  window.addEventListener('hashchange', ()=>{
+    editingId = null; formImages = []; prodQuery = '';
+    ordQuery = ''; fDate = 'all'; fFrom = ''; fTo = ''; fSource = 'all'; fStatus = 'all';
+    render();
+  });
   function toast(msg){
     const t = document.createElement('div');
     t.className = 'toast'; t.textContent = msg;
@@ -199,7 +205,8 @@ function start(){
         snap.docChanges().forEach(ch=>{ if(ch.type==='added' && !ch.doc.metadata.hasPendingWrites) toast('🛍 New order from ' + ch.doc.data().name); });
       }
       firstOrdersLoad = false;
-      if(['/dashboard','/orders'].includes(route())) render();
+      if(route() === '/orders'){ updateOrdersList(); updateBadge(); }   // keeps the search box focused
+      else if(route() === '/dashboard') render();
       else updateBadge();
     }, onErr));
     getDoc(doc(db,'settings','shop')).then(s=>{ if(s.exists()) settings = { ...settings, ...s.data() }; render(); }).catch(()=>{});
@@ -295,10 +302,23 @@ function start(){
       ${ed ? `<button class="btn outline" data-cancel-edit style="margin-left:.5em">Cancel</button>` : ''}
     </div>
     ${products.length === 0 ? '<div class="panel muted">No products yet — add your first one above.</div>' : `
+    <div class="panel" style="padding:1em;">
+      <label for="prod-search">Search products</label>
+      <input id="prod-search" type="search" placeholder="Search by product name or description" value="${escapeHtml(prodQuery)}">
+    </div>
+    <div id="prod-list">${productsTableHtml()}</div>`}`;
+  }
+
+  function productsTableHtml(){
+    const q = prodQuery.trim().toLowerCase();
+    const list = q ? products.filter(p=>(String(p.name||'')+' '+String(p.desc||'')).toLowerCase().includes(q)) : products;
+    if(!list.length) return `<div class="panel muted">No products match "${escapeHtml(prodQuery)}".</div>`;
+    return `
+    ${q ? `<div class="muted" style="margin-bottom:.5em;">Showing ${list.length} of ${products.length} products</div>` : ''}
     <div class="tablewrap"><table>
       <thead><tr><th></th><th>Name</th><th>Price</th><th>Stock</th><th>Description</th><th>Actions</th></tr></thead>
       <tbody>
-        ${products.map(p=>`
+        ${list.map(p=>`
           <tr>
             <td><img src="${thumbOf(p)}" style="width:44px;height:54px;object-fit:cover;border-radius:3px;">${imgsOf(p).length>1?`<div class="muted" style="font-size:.7em;">${imgsOf(p).length} photos</div>`:''}</td>
             <td>${escapeHtml(p.name)}</td>
@@ -311,18 +331,53 @@ function start(){
             </td>
           </tr>`).join('')}
       </tbody>
-    </table></div>`}`;
+    </table></div>`;
   }
 
-  function viewOrders(){
+  /* ---------- Order search + filters ---------- */
+  function orderDate(o){ return o.time && o.time.toDate ? o.time.toDate() : new Date(); }
+  function dateMatch(o){
+    if(fDate === 'all') return true;
+    const d = orderDate(o), now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if(fDate === 'today') return d >= today;
+    if(fDate === 'yesterday'){ const y = new Date(today); y.setDate(y.getDate()-1); return d >= y && d < today; }
+    if(fDate === 'week'){ const w = new Date(today); w.setDate(w.getDate()-6); return d >= w; }   // today + previous 6 days
+    if(fDate === 'month') return d >= new Date(now.getFullYear(), now.getMonth(), 1);
+    if(fDate === 'custom'){
+      if(fFrom && d < new Date(fFrom + 'T00:00:00')) return false;
+      if(fTo && d > new Date(fTo + 'T23:59:59.999')) return false;
+    }
+    return true;
+  }
+  function filteredOrders(){
+    const q = ordQuery.trim().toLowerCase();
+    return orders.filter(o=>{
+      if(q){
+        const hay = [shortId(o), o.id, o.name, o.phone].map(x=>String(x||'').toLowerCase());
+        if(!hay.some(h=>h.includes(q))) return false;
+      }
+      if(!dateMatch(o)) return false;
+      if(fSource !== 'all' && o.payment !== fSource) return false;
+      if(fStatus !== 'all' && o.status !== fStatus) return false;
+      return true;
+    });
+  }
+  function filtersActive(){ return ordQuery.trim() || fDate !== 'all' || fSource !== 'all' || fStatus !== 'all'; }
+
+  function ordersListHtml(){
     const statuses = ['Pending','Confirmed','Dispatched','Delivered','Cancelled'];
+    const list = filteredOrders();
+    const badRange = fDate === 'custom' && fFrom && fTo && fFrom > fTo;
+    if(!list.length) return `<div class="panel muted">${badRange ? 'The end date is before the start date.' : 'No orders match your search or filters.'}
+      ${filtersActive() ? ' <button class="linkbtn" data-clear-filters>Clear search and filters</button>' : ''}</div>`;
     return `
-    <h2>Orders</h2>
-    ${orders.length===0 ? '<div class="panel muted">No orders yet. New orders appear here automatically.</div>' : `
+    <div class="muted" style="margin-bottom:.5em;">Showing ${list.length} of ${orders.length} orders
+      ${filtersActive() ? ' · <button class="linkbtn" data-clear-filters>Clear search and filters</button>' : ''}</div>
     <div class="tablewrap"><table>
       <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead>
       <tbody>
-      ${orders.map(o=>`
+      ${list.map(o=>`
         <tr>
           <td><b>${shortId(o)}</b><div class="muted">${fmtTime(o)}</div></td>
           <td>${escapeHtml(o.name)}
@@ -344,9 +399,57 @@ function start(){
           </td>
         </tr>`).join('')}
       </tbody>
-    </table></div>
+    </table></div>`;
+  }
+  function updateOrdersList(){
+    const el = document.getElementById('orders-list');
+    if(!el){ render(); return; }
+    el.innerHTML = ordersListHtml();
+    attachHandlers();
+  }
+
+  function viewOrders(){
+    const sel = (cur, val) => cur === val ? 'selected' : '';
+    return `
+    <h2>Orders</h2>
+    ${orders.length===0 ? '<div class="panel muted">No orders yet. New orders appear here automatically.</div>' : `
+    <div class="panel" style="padding:1em;">
+      <div class="field" style="margin-bottom:.8em;">
+        <label for="of-search">Search orders</label>
+        <input id="of-search" type="search" placeholder="Search using Order ID, customer name, or phone number" value="${escapeHtml(ordQuery)}">
+      </div>
+      <div class="row">
+        <div class="field" style="margin-bottom:.5em;"><label for="of-date">Date</label>
+          <select id="of-date">
+            <option value="all" ${sel(fDate,'all')}>All orders</option>
+            <option value="today" ${sel(fDate,'today')}>Today</option>
+            <option value="yesterday" ${sel(fDate,'yesterday')}>Yesterday</option>
+            <option value="week" ${sel(fDate,'week')}>Last week (past 7 days)</option>
+            <option value="month" ${sel(fDate,'month')}>This month</option>
+            <option value="custom" ${sel(fDate,'custom')}>Custom date</option>
+          </select></div>
+        <div class="field" style="margin-bottom:.5em;"><label for="of-source">Order Source</label>
+          <select id="of-source">
+            <option value="all" ${sel(fSource,'all')}>All sources</option>
+            <option value="whatsapp" ${sel(fSource,'whatsapp')}>WhatsApp</option>
+            <option value="online" ${sel(fSource,'online')}>Online payment</option>
+          </select></div>
+        <div class="field" style="margin-bottom:.5em;"><label for="of-status">Order Status</label>
+          <select id="of-status">
+            <option value="all" ${sel(fStatus,'all')}>All status</option>
+            <option value="Pending" ${sel(fStatus,'Pending')}>Pending</option>
+            <option value="Confirmed" ${sel(fStatus,'Confirmed')}>Confirmed</option>
+            <option value="Cancelled" ${sel(fStatus,'Cancelled')}>Cancelled</option>
+          </select></div>
+      </div>
+      <div class="row" id="of-custom" style="display:${fDate==='custom'?'flex':'none'};">
+        <div class="field" style="margin-bottom:.5em;"><label for="of-from">Start date</label><input type="date" id="of-from" value="${escapeHtml(fFrom)}"></div>
+        <div class="field" style="margin-bottom:.5em;"><label for="of-to">End date</label><input type="date" id="of-to" value="${escapeHtml(fTo)}"></div>
+      </div>
+    </div>
+    <div id="orders-list">${ordersListHtml()}</div>
     <p class="muted" style="margin-top:.8em"><b>UPI orders:</b> open the payment screenshot, check the money in your UPI app / bank, then press "Payment received, confirm order". The customer's page then shows that the order is received and will arrive in 3-4 working days.</p>
-    <p class="muted" style="margin-top:.8em">Stock is reduced automatically when you move an order out of "Pending" (to Confirmed etc.), and restored if you cancel it.</p>`}`;
+    <p class="muted" style="margin-top:.8em">Stock is reduced automatically when you move an order out of "Pending" (to Confirmed etc.), and restored if you cancel it. Dispatched and Delivered orders appear under "All status".</p>`}`;
   }
 
   function viewSettings(){
@@ -459,6 +562,35 @@ function start(){
       if(!confirm('Delete this product? Customers will no longer see it.')) return;
       try{ await deleteDoc(doc(db,'products',b.dataset.delete)); toast('Deleted'); }
       catch(e){ toast('Could not delete'); }
+    });
+
+    // product search (only the table refreshes, so typing is never interrupted)
+    const ps = document.getElementById('prod-search');
+    if(ps) ps.oninput = ()=>{
+      prodQuery = ps.value;
+      document.getElementById('prod-list').innerHTML = productsTableHtml();
+      attachHandlers();
+    };
+
+    // order search + filters
+    const os = document.getElementById('of-search');
+    if(os) os.oninput = ()=>{ ordQuery = os.value; updateOrdersList(); };
+    const od = document.getElementById('of-date');
+    if(od) od.onchange = ()=>{
+      fDate = od.value;
+      document.getElementById('of-custom').style.display = fDate === 'custom' ? 'flex' : 'none';
+      updateOrdersList();
+    };
+    const osrc = document.getElementById('of-source');
+    if(osrc) osrc.onchange = ()=>{ fSource = osrc.value; updateOrdersList(); };
+    const ost = document.getElementById('of-status');
+    if(ost) ost.onchange = ()=>{ fStatus = ost.value; updateOrdersList(); };
+    const ofr = document.getElementById('of-from');
+    if(ofr) ofr.onchange = ()=>{ fFrom = ofr.value; updateOrdersList(); };
+    const oto = document.getElementById('of-to');
+    if(oto) oto.onchange = ()=>{ fTo = oto.value; updateOrdersList(); };
+    document.querySelectorAll('[data-clear-filters]').forEach(b=>b.onclick=()=>{
+      ordQuery = ''; fDate = 'all'; fFrom = ''; fTo = ''; fSource = 'all'; fStatus = 'all'; render();
     });
 
     // orders
