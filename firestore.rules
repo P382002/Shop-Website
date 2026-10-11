@@ -10,14 +10,17 @@ service cloud.firestore {
 
     function validOrder() {
       let d = request.resource.data;
-      return d.keys().hasOnly(['name','phone','address','payment','items','total','status','stockDeducted','time'])
+      return d.keys().hasOnly(['name','phone','address','payment','items','total','status','stockDeducted','time','screenshot'])
           && d.status == 'Pending'
           && d.stockDeducted == false
           && d.time == request.time
           && d.name is string && d.name.size() > 0 && d.name.size() <= 100
           && d.phone is string && d.phone.size() == 10
           && d.address is string && d.address.size() > 0 && d.address.size() <= 500
-          && d.payment in ['whatsapp','cod','online']
+          && d.payment in ['whatsapp','online']
+          && (d.payment == 'online'
+               ? (d.screenshot is string && d.screenshot.size() > 1000 && d.screenshot.size() < 700000)
+               : !d.keys().hasAny(['screenshot']))
           && d.items is list && d.items.size() > 0 && d.items.size() <= 30
           && d.total is number && d.total > 0;
     }
@@ -32,10 +35,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Customers can only CREATE orders; only the owner can read/update them
+    // Customers can CREATE an order, and read back ONE order only if they know its
+    // (random, unguessable) ID - this lets them see "payment confirmed" on their phone.
+    // Only the owner can list / update / delete orders.
     match /orders/{id} {
       allow create: if validOrder();
-      allow read, update, delete: if isAdmin();
+      allow get: if true;
+      allow list, update, delete: if isAdmin();
     }
   }
 }
