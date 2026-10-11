@@ -144,6 +144,7 @@ function start(){
   let curImgs = [];       // photos of the product being viewed
   let shot = null;        // payment screenshot chosen at checkout (base64)
   const liveStatuses = {}; // live status of each of the customer's orders, by order id
+  const liveOrders = {};   // live order details (items, total), by order id
   const orderUnsubs = {};
   let cart = [];
   try{ cart = JSON.parse(localStorage.getItem('svf_cart') || '[]'); }catch(e){ cart = []; }
@@ -524,9 +525,11 @@ function start(){
     if(!oid || orderUnsubs[oid]) return;
     orderUnsubs[oid] = true; // mark first so a fast first callback can't start a second listener
     const unsub = onSnapshot(doc(db,'orders',oid), snap=>{
-      const next = snap.exists() ? snap.data().status : null;
-      const changed = liveStatuses[oid] !== next;
+      const data = snap.exists() ? snap.data() : null;
+      const next = data ? data.status : null;
+      const changed = liveStatuses[oid] !== next || !(oid in liveOrders);
       liveStatuses[oid] = next;
+      liveOrders[oid] = data;
       if(changed && isOrderRoute()) setTimeout(render, 0);
     }, ()=>{});
     orderUnsubs[oid] = unsub;
@@ -542,6 +545,20 @@ function start(){
     return ['Order placed', 'Your order has been received. If WhatsApp did not open, tap the button below and press Send so we can confirm with you.'];
   }
 
+  // product names, quantity and amount of an order (live data first, saved copy as fallback)
+  function orderLines(o){
+    const d = liveOrders[o.oid];
+    if(d && Array.isArray(d.items) && d.items.length) return { items:d.items, total:d.total };
+    return { items:null, total:o.total };
+  }
+  function orderItemsHtml(o){
+    const { items, total } = orderLines(o);
+    if(!items) return `${o.items ? `<div style="font-size:.9em;">${escapeHtml(o.items)}</div>` : ''}${total ? `<div style="font-weight:700;margin-top:.3em;">${money(total)}</div>` : ''}`;
+    return `
+      ${items.map(i=>`<div class="flex-between" style="font-size:.92em;padding:.15em 0;"><span>${escapeHtml(i.name)} × ${i.qty}</span><span>${money(i.price*i.qty)}</span></div>`).join('')}
+      <div class="flex-between" style="border-top:1px solid var(--line);margin-top:.4em;padding-top:.4em;font-weight:700;"><span>Total</span><span>${money(total)}</span></div>`;
+  }
+
   function orderPanel(o, withBack){
     watchOrder(o.oid);
     const st = liveStatuses[o.oid] || 'Pending';
@@ -553,6 +570,10 @@ function start(){
       <h2 style="color:${st==='Cancelled'?'#A32E2E':'var(--ok)'}">${escapeHtml(title)}</h2>
       <p>Order ID: <b>${escapeHtml(o.id)}</b></p>
       <p>${msg}</p>
+      <div style="text-align:left;border-top:1px solid var(--line);margin:1em 0;padding-top:.8em;">
+        <div class="muted" style="font-weight:600;margin-bottom:.4em;">Order summary</div>
+        ${orderItemsHtml(o)}
+      </div>
       ${o.waUrl && st==='Pending' ? `<p><a class="btn wa" href="${escapeHtml(o.waUrl)}" target="_blank" rel="noopener">Send on WhatsApp</a></p>` : ''}
       <a href="#/my-orders" class="btn outline" style="margin-top:.5em;">All my orders</a>
       <a href="#/" class="btn" style="margin-top:.5em;">Continue Shopping</a>
@@ -589,8 +610,7 @@ function start(){
             <span class="status-pill ${st.toLowerCase()}" style="margin:0;">${escapeHtml(st)}</span>
           </div>
           <div class="muted" style="margin:.3em 0;">${fmtDate(o.time)}${o.payment==='online' ? ' · Paid online (UPI)' : ' · WhatsApp order'}</div>
-          ${o.items ? `<div style="font-size:.9em;">${escapeHtml(o.items)}</div>` : ''}
-          ${o.total ? `<div style="font-weight:700;margin-top:.3em;">${money(o.total)}</div>` : ''}
+          ${orderItemsHtml(o)}
         </div>
       </a>`;
     }).join('')}`;
