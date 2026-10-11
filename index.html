@@ -143,8 +143,8 @@ function start(){
   let galleryIdx = 0;     // photo currently shown on the product page
   let curImgs = [];       // photos of the product being viewed
   let shot = null;        // payment screenshot chosen at checkout (base64)
-  let liveStatus = null;  // live status of the customer's last order
-  let watchingOid = null, unsubOrder = null;
+  const liveStatuses = {}; // live status of each of the customer's orders, by order id
+  const orderUnsubs = {};
   let cart = [];
   try{ cart = JSON.parse(localStorage.getItem('svf_cart') || '[]'); }catch(e){ cart = []; }
   function saveCart(){ try{ localStorage.setItem('svf_cart', JSON.stringify(cart)); }catch(e){} }
@@ -169,6 +169,7 @@ function start(){
 
   /* ---------- Routing ---------- */
   function route(){ return location.hash.slice(1) || '/'; }
+  function isOrderRoute(){ const r = route(); return r === '/my-orders' || r === '/order-success' || r.startsWith('/order/'); }
   window.addEventListener('hashchange', ()=>{ galleryIdx = 0; closeLightbox(); render(); window.scrollTo(0,0); });
   function go(h){ if(location.hash.slice(1) === h){ render(); } else { location.hash = h; } }
 
@@ -243,13 +244,29 @@ function start(){
       </div>
       <nav class="top">
         <a href="#/">Shop</a>
-        ${lastOrder() ? `<a href="#/order-success">My Order</a>` : ''}
+        ${myOrders().length ? `<a href="#/my-orders">My Orders</a>` : ''}
         <a href="#/cart">Cart${cartCount()? `<span class="cart-count">${cartCount()}</span>`:''}</a>
       </nav>
     </div></header>`;
   }
-  function lastOrder(){
-    try{ return JSON.parse(localStorage.getItem('svf_last_order') || 'null'); }catch(e){ return null; }
+  // Orders placed on this phone/browser (newest first). Older single-order data is carried over.
+  function myOrders(){
+    let list = [];
+    try{ list = JSON.parse(localStorage.getItem('svf_orders') || '[]'); }catch(e){ list = []; }
+    if(!Array.isArray(list)) list = [];
+    try{
+      const old = JSON.parse(localStorage.getItem('svf_last_order') || 'null');
+      if(old && old.oid && !list.some(o=>o.oid===old.oid)) list.push(old);
+    }catch(e){}
+    return list;
+  }
+  function saveMyOrder(o){
+    const list = myOrders().filter(x=>x.oid !== o.oid);
+    list.unshift(o);
+    try{ localStorage.setItem('svf_orders', JSON.stringify(list.slice(0,30))); }catch(e){}
+  }
+  function fmtDate(t){
+    return t ? new Date(t).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) : '';
   }
   function footer(){
     return `<footer>© ${new Date().getFullYear()} ${escapeHtml(settings.shopName)} — Handpicked sarees, delivered with care.</footer>`;
@@ -263,6 +280,8 @@ function start(){
     else if(r === '/cart') body = viewCart();
     else if(r === '/checkout') body = viewCheckout();
     else if(r === '/order-success') body = viewOrderSuccess();
+    else if(r === '/my-orders') body = viewMyOrders();
+    else if(r.startsWith('/order/')) body = viewOrderDetail(r.slice(7));
     else body = `<div class="empty">Page not found. <a href="#/">Go to shop</a></div>`;
     app.innerHTML = header() + `<main><div class="container">${body}</div></main>` + footer();
     attachHandlers();
@@ -502,50 +521,79 @@ function start(){
   }
 
   function watchOrder(oid){
-    if(!oid || watchingOid === oid) return;
-    if(unsubOrder) unsubOrder();
-    watchingOid = oid; liveStatus = null;
-    unsubOrder = onSnapshot(doc(db,'orders',oid), snap=>{
-      liveStatus = snap.exists() ? snap.data().status : null;
-      if(route() === '/order-success') render();
+    if(!oid || orderUnsubs[oid]) return;
+    orderUnsubs[oid] = true; // mark first so a fast first callback can't start a second listener
+    const unsub = onSnapshot(doc(db,'orders',oid), snap=>{
+      const next = snap.exists() ? snap.data().status : null;
+      const changed = liveStatuses[oid] !== next;
+      liveStatuses[oid] = next;
+      if(changed && isOrderRoute()) setTimeout(render, 0);
     }, ()=>{});
+    orderUnsubs[oid] = unsub;
   }
 
-  function viewOrderSuccess(){
-    const o = lastOrder();
-    if(!o) return `<div class="empty">No recent order. <a href="#/">Go to shop</a></div>`;
-    watchOrder(o.oid);
-    const st = liveStatus || 'Pending';
+  function orderMessage(o, st){
     const online = o.payment === 'online';
-    let title, msg;
-    if(st === 'Cancelled'){
-      title = 'Order cancelled';
-      msg = 'This order was cancelled. If you think this is a mistake, please contact us on WhatsApp.';
-    } else if(st === 'Delivered'){
-      title = 'Order delivered';
-      msg = 'Your order has been delivered. Thank you for shopping with us!';
-    } else if(st === 'Dispatched'){
-      title = 'Order dispatched';
-      msg = 'Your order has been dispatched. You will receive it within 3-4 working days.';
-    } else if(st === 'Confirmed'){
-      title = online ? 'Payment confirmed' : 'Order confirmed';
-      msg = (online ? 'Thank you! We have verified your payment. ' : '') + 'Your order has been received. You will receive your order within 3-4 working days.';
-    } else if(online){
-      title = 'Payment screenshot received';
-      msg = 'Thank you! We are checking your payment. This page will update automatically once your payment is confirmed.';
-    } else {
-      title = 'Order placed';
-      msg = 'Your order has been received. If WhatsApp did not open, tap the button below and press Send so we can confirm with you.';
-    }
+    if(st === 'Cancelled') return ['Order cancelled', 'This order was cancelled. If you think this is a mistake, please contact us on WhatsApp.'];
+    if(st === 'Delivered') return ['Order delivered', 'Your order has been delivered. Thank you for shopping with us!'];
+    if(st === 'Dispatched') return ['Order dispatched', 'Your order has been dispatched. You will receive it within 3-4 working days.'];
+    if(st === 'Confirmed') return [online ? 'Payment confirmed' : 'Order confirmed', (online ? 'Thank you! We have verified your payment. ' : '') + 'Your order has been received. You will receive your order within 3-4 working days.'];
+    if(online) return ['Payment screenshot received', 'Thank you! We are checking your payment. This page will update automatically once your payment is confirmed.'];
+    return ['Order placed', 'Your order has been received. If WhatsApp did not open, tap the button below and press Send so we can confirm with you.'];
+  }
+
+  function orderPanel(o, withBack){
+    watchOrder(o.oid);
+    const st = liveStatuses[o.oid] || 'Pending';
+    const [title, msg] = orderMessage(o, st);
     return `
-    <div class="panel" style="max-width:500px;margin:2em auto;text-align:center;">
+    ${withBack ? `<a class="back" href="#/my-orders">← All my orders</a>` : ''}
+    <div class="panel" style="max-width:500px;margin:${withBack?'0':'2em'} auto;text-align:center;">
       <span class="status-pill ${st.toLowerCase()}">${escapeHtml(st)}</span>
       <h2 style="color:${st==='Cancelled'?'#A32E2E':'var(--ok)'}">${escapeHtml(title)}</h2>
       <p>Order ID: <b>${escapeHtml(o.id)}</b></p>
       <p>${msg}</p>
       ${o.waUrl && st==='Pending' ? `<p><a class="btn wa" href="${escapeHtml(o.waUrl)}" target="_blank" rel="noopener">Send on WhatsApp</a></p>` : ''}
+      <a href="#/my-orders" class="btn outline" style="margin-top:.5em;">All my orders</a>
       <a href="#/" class="btn" style="margin-top:.5em;">Continue Shopping</a>
     </div>`;
+  }
+
+  // the order that was just placed
+  function viewOrderSuccess(){
+    const o = myOrders()[0];
+    if(!o) return `<div class="empty">No recent order. <a href="#/">Go to shop</a></div>`;
+    return orderPanel(o, false);
+  }
+
+  function viewOrderDetail(oid){
+    const o = myOrders().find(x=>x.oid === oid);
+    if(!o) return `<div class="empty">Order not found on this device. <a href="#/my-orders">My orders</a></div>`;
+    return orderPanel(o, true);
+  }
+
+  function viewMyOrders(){
+    const list = myOrders();
+    if(!list.length) return `<div class="empty">You have no orders yet. <a href="#/">Browse sarees</a></div>`;
+    list.slice(0,15).forEach(o=>watchOrder(o.oid));
+    return `
+    <h2>My Orders</h2>
+    <p class="muted" style="margin-bottom:1em;">Orders placed from this phone or browser, newest first.</p>
+    ${list.map(o=>{
+      const st = liveStatuses[o.oid] || 'Pending';
+      return `
+      <a href="#/order/${encodeURIComponent(o.oid)}" style="text-decoration:none;color:inherit;">
+        <div class="panel" style="margin-bottom:1em;">
+          <div class="flex-between">
+            <b>Order ${escapeHtml(o.id)}</b>
+            <span class="status-pill ${st.toLowerCase()}" style="margin:0;">${escapeHtml(st)}</span>
+          </div>
+          <div class="muted" style="margin:.3em 0;">${fmtDate(o.time)}${o.payment==='online' ? ' · Paid online (UPI)' : ' · WhatsApp order'}</div>
+          ${o.items ? `<div style="font-size:.9em;">${escapeHtml(o.items)}</div>` : ''}
+          ${o.total ? `<div style="font-weight:700;margin-top:.3em;">${money(o.total)}</div>` : ''}
+        </div>
+      </a>`;
+    }).join('')}`;
   }
 
   /* ---------- Handlers ---------- */
@@ -632,8 +680,12 @@ function start(){
       return;
     }
 
-    try{ localStorage.setItem('svf_last_order', JSON.stringify({ id:shortId, oid:orderRef.id, payment, waUrl: settings.whatsapp ? waUrl : '' })); }catch(e){}
-    watchingOid = null; liveStatus = null; shot = null;
+    saveMyOrder({
+      id:shortId, oid:orderRef.id, payment, total, time:Date.now(),
+      items: items.map(i=>`${i.name} × ${i.qty}`).join(', ').slice(0,200),
+      waUrl: settings.whatsapp ? waUrl : ''
+    });
+    shot = null;
     cart = []; saveCart();
     if(popup) popup.location.href = waUrl;
     go('/order-success');
