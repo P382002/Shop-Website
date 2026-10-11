@@ -41,6 +41,7 @@
   .btn.wa{background:#25D366;color:#fff;}
   .btn.outline{background:transparent;border:1px solid var(--maroon);color:var(--maroon);}
   .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn.small{padding:.4em .8em;font-size:.85em;}
   .empty{text-align:center;padding:3em 1em;color:#888;}
   .row{display:flex;gap:1em;flex-wrap:wrap;}
   .row > *{flex:1;min-width:220px;}
@@ -59,6 +60,52 @@
   .toast{position:fixed;bottom:1.5em;right:1.5em;background:var(--ink);color:#fff;padding:.9em 1.3em;border-radius:6px;font-size:.9em;z-index:100;box-shadow:0 4px 14px rgba(0,0,0,.2);}
   .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5em;}
   .muted{color:#888;font-size:.85em;}
+  /* product card extras */
+  .card .imgwrap{position:relative;cursor:pointer;}
+  .card .imgwrap .photo-count{position:absolute;right:.6em;bottom:.6em;background:rgba(43,27,18,.78);color:#fff;font-size:.75em;padding:.2em .6em;border-radius:20px;}
+  .card .name.link{cursor:pointer;}
+  .card .name.link:hover{color:var(--maroon);}
+  /* product page + gallery */
+  .back{display:inline-block;margin-bottom:1em;color:var(--maroon);text-decoration:none;font-weight:600;font-size:.9em;}
+  .pd{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:2em;align-items:start;}
+  .gal-main{position:relative;background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden;cursor:zoom-in;touch-action:pan-y;}
+  .gal-main img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;background:#eee;user-select:none;-webkit-user-drag:none;}
+  .gal-count{position:absolute;left:.7em;top:.7em;background:rgba(43,27,18,.78);color:#fff;font-size:.78em;padding:.2em .65em;border-radius:20px;}
+  .gal-hint{position:absolute;right:.7em;bottom:.7em;background:rgba(255,255,255,.9);color:var(--maroon-dark);font-size:.75em;padding:.25em .7em;border-radius:20px;}
+  .gal-arrow{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--maroon-dark);font-size:1.4em;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+  .gal-arrow.prev{left:.6em;} .gal-arrow.next{right:.6em;}
+  .gal-thumbs{display:flex;gap:.6em;margin-top:.7em;overflow-x:auto;padding-bottom:.3em;}
+  .thumb{flex:0 0 auto;width:70px;height:86px;padding:0;border:2px solid var(--line);border-radius:5px;overflow:hidden;background:#fff;opacity:.75;}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .thumb.active{border-color:var(--maroon);opacity:1;}
+  .pd-info h2{font-size:1.7em;}
+  .pd-info .price{color:var(--maroon);font-weight:700;font-size:1.5em;margin:.2em 0 .6em;}
+  .pd-info .desc{color:#555;line-height:1.6;white-space:pre-line;margin-bottom:1em;}
+  /* full-screen viewer */
+  .lightbox{position:fixed;inset:0;background:rgba(20,10,6,.95);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:pan-y;}
+  .lightbox .lb-img{max-width:100%;max-height:calc(100% - 110px);object-fit:contain;user-select:none;-webkit-user-drag:none;}
+  .lightbox .lb-close{position:absolute;top:.8em;right:.8em;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:1.5em;line-height:1;}
+  .lightbox .lb-arrow{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:1.8em;line-height:1;}
+  .lightbox .lb-arrow.prev{left:.6em;} .lightbox .lb-arrow.next{right:.6em;}
+  .lightbox .lb-count{position:absolute;top:1.1em;left:1em;color:#fff;font-size:.9em;}
+  .lightbox .lb-thumbs{position:absolute;bottom:.8em;left:0;right:0;display:flex;gap:.5em;justify-content:center;padding:0 .8em;overflow-x:auto;}
+  .lightbox .lb-thumbs .thumb{width:54px;height:66px;border-color:transparent;}
+  .lightbox .lb-thumbs .thumb.active{border-color:var(--gold);}
+  /* payment box */
+  .upi-box{border:1px dashed var(--maroon);background:#FDF3E7;border-radius:6px;padding:1em;margin:-.2em 0 1em;}
+  .upi-id{display:flex;align-items:center;gap:.6em;flex-wrap:wrap;margin:.4em 0;}
+  .upi-id code{background:#fff;border:1px solid var(--line);border-radius:4px;padding:.4em .7em;font-size:1.05em;font-weight:600;word-break:break-all;}
+  .upi-amount{font-size:1.3em;font-weight:700;color:var(--maroon);}
+  .shot-preview{max-width:180px;max-height:240px;border:1px solid var(--line);border-radius:4px;margin-top:.5em;display:block;}
+  .status-pill{display:inline-block;padding:.25em .8em;border-radius:20px;font-size:.8em;font-weight:600;margin-bottom:.8em;}
+  .status-pill.pending{background:#FCE9D5;color:#B4531E;}
+  .status-pill.confirmed,.status-pill.dispatched,.status-pill.delivered{background:#DAF0DE;color:var(--ok);}
+  .status-pill.cancelled{background:#F5DADA;color:#A32E2E;}
+  @media(max-width:760px){
+    .pd{grid-template-columns:1fr;gap:1.2em;}
+    .pd-info h2{font-size:1.4em;}
+    .gal-arrow{width:34px;height:34px;}
+  }
   @media(max-width:640px){
     header.site .container{flex-direction:column;gap:.5em;align-items:flex-start;}
     nav.top{width:100%;display:flex;justify-content:space-between;}
@@ -93,6 +140,11 @@ function start(){
   let productsLoaded = false;
   let loadError = false;
   let settings = { shopName:'Sri Vignaraja Fabrics', whatsapp:'', upiId:'' };
+  let galleryIdx = 0;     // photo currently shown on the product page
+  let curImgs = [];       // photos of the product being viewed
+  let shot = null;        // payment screenshot chosen at checkout (base64)
+  let liveStatus = null;  // live status of the customer's last order
+  let watchingOid = null, unsubOrder = null;
   let cart = [];
   try{ cart = JSON.parse(localStorage.getItem('svf_cart') || '[]'); }catch(e){ cart = []; }
   function saveCart(){ try{ localStorage.setItem('svf_cart', JSON.stringify(cart)); }catch(e){} }
@@ -113,11 +165,11 @@ function start(){
   }, ()=>{});
 
   // don't wipe the checkout form while the customer is typing
-  function softRender(){ if(route() !== '/checkout') render(); }
+  function softRender(){ if(route() !== '/checkout') render(); else refreshUpi(); }
 
   /* ---------- Routing ---------- */
   function route(){ return location.hash.slice(1) || '/'; }
-  window.addEventListener('hashchange', render);
+  window.addEventListener('hashchange', ()=>{ galleryIdx = 0; closeLightbox(); render(); window.scrollTo(0,0); });
   function go(h){ if(location.hash.slice(1) === h){ render(); } else { location.hash = h; } }
 
   function toast(msg){
@@ -154,6 +206,28 @@ function start(){
   /* ---------- Helpers ---------- */
   function escapeHtml(s){ return String(s ?? '').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
   function money(n){ return '₹' + Number(n).toLocaleString('en-IN'); }
+  // all photos of a product (new products have `images`; older ones only have `image`)
+  function imgsOf(p){
+    if(Array.isArray(p.images) && p.images.length) return p.images;
+    return p.image ? [p.image] : [];
+  }
+  // small picture for cards / cart (falls back to the first photo)
+  function thumbOf(p){ return p.image || imgsOf(p)[0] || placeholderImg(p.name); }
+  function resizeImage(file, maxW=900, quality=0.7){
+    return new Promise((res,rej)=>{
+      const img = new Image(); const url = URL.createObjectURL(file);
+      img.onload = ()=>{
+        const sc = Math.min(1, maxW/img.width);
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        URL.revokeObjectURL(url);
+        res(c.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = ()=>rej(new Error('bad image'));
+      img.src = url;
+    });
+  }
   function placeholderImg(name){
     const txt = encodeURIComponent((name||'?').slice(0,2).toUpperCase());
     return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='360'><rect width='100%' height='100%' fill='%23F0E6D6'/><text x='50%' y='50%' font-size='60' fill='%237A1F2B' font-family='sans-serif' text-anchor='middle' dy='.35em'>${txt}</text></svg>`;
@@ -169,9 +243,13 @@ function start(){
       </div>
       <nav class="top">
         <a href="#/">Shop</a>
+        ${lastOrder() ? `<a href="#/order-success">My Order</a>` : ''}
         <a href="#/cart">Cart${cartCount()? `<span class="cart-count">${cartCount()}</span>`:''}</a>
       </nav>
     </div></header>`;
+  }
+  function lastOrder(){
+    try{ return JSON.parse(localStorage.getItem('svf_last_order') || 'null'); }catch(e){ return null; }
   }
   function footer(){
     return `<footer>© ${new Date().getFullYear()} ${escapeHtml(settings.shopName)} — Handpicked sarees, delivered with care.</footer>`;
@@ -181,6 +259,7 @@ function start(){
     const r = route();
     let body = '';
     if(r === '/') body = viewShop();
+    else if(r.startsWith('/product/')) body = viewProduct(r.slice(9));
     else if(r === '/cart') body = viewCart();
     else if(r === '/checkout') body = viewCheckout();
     else if(r === '/order-success') body = viewOrderSuccess();
@@ -199,9 +278,12 @@ function start(){
     <div class="grid">
       ${products.map(p=>`
         <div class="card">
-          <img src="${p.image || placeholderImg(p.name)}" alt="${escapeHtml(p.name)}">
+          <div class="imgwrap" data-view="${p.id}">
+            <img src="${thumbOf(p)}" alt="${escapeHtml(p.name)}" loading="lazy">
+            ${imgsOf(p).length>1 ? `<span class="photo-count">📷 ${imgsOf(p).length} photos</span>` : ''}
+          </div>
           <div class="body">
-            <div class="name">${escapeHtml(p.name)}</div>
+            <div class="name link" data-view="${p.id}">${escapeHtml(p.name)}</div>
             <div class="price">${money(p.price)}</div>
             <div class="desc">${escapeHtml(p.desc)}</div>
             <div class="stock">${p.stock>0 ? p.stock+' in stock' : '<span style="color:#A32E2E">Out of stock</span>'}</div>
@@ -209,6 +291,107 @@ function start(){
           </div>
         </div>`).join('')}
     </div>`;
+  }
+
+  function viewProduct(id){
+    if(!productsLoaded) return `<div class="empty">Loading…</div>`;
+    const p = products.find(x=>x.id===id);
+    if(!p) return `<div class="empty">This saree is no longer available. <a href="#/">Back to collection</a></div>`;
+    const imgs = imgsOf(p);
+    curImgs = imgs.length ? imgs : [placeholderImg(p.name)];
+    if(galleryIdx >= curImgs.length) galleryIdx = 0;
+    const n = curImgs.length;
+    return `
+    <a class="back" href="#/">← Back to collection</a>
+    <div class="pd">
+      <div class="gal">
+        <div class="gal-main" data-gal-main>
+          <img id="gal-img" src="${curImgs[galleryIdx]}" alt="${escapeHtml(p.name)}" draggable="false">
+          ${n>1 ? `<span class="gal-count" id="gal-count">${galleryIdx+1} / ${n}</span>
+          <button class="gal-arrow prev" data-gal-prev aria-label="Previous photo">‹</button>
+          <button class="gal-arrow next" data-gal-next aria-label="Next photo">›</button>` : ''}
+          <span class="gal-hint">Tap to enlarge</span>
+        </div>
+        ${n>1 ? `<div class="gal-thumbs">${curImgs.map((src,i)=>`
+          <button class="thumb ${i===galleryIdx?'active':''}" data-thumb="${i}" aria-label="Photo ${i+1}"><img src="${src}" alt=""></button>`).join('')}</div>` : ''}
+      </div>
+      <div class="pd-info">
+        <h2>${escapeHtml(p.name)}</h2>
+        <div class="price">${money(p.price)}</div>
+        <div class="desc">${escapeHtml(p.desc)}</div>
+        <div class="muted" style="margin-bottom:1em;">${p.stock>0 ? p.stock+' in stock' : '<span style="color:#A32E2E">Out of stock</span>'}</div>
+        <button class="btn" style="width:100%;" data-add="${p.id}" ${p.stock<=0?'disabled':''}>Add to Cart</button>
+      </div>
+    </div>`;
+  }
+
+  function setGallery(i){
+    const n = curImgs.length; if(!n) return;
+    galleryIdx = (i + n) % n;
+    const img = document.getElementById('gal-img'); if(img) img.src = curImgs[galleryIdx];
+    const cnt = document.getElementById('gal-count'); if(cnt) cnt.textContent = (galleryIdx+1) + ' / ' + n;
+    document.querySelectorAll('.gal-thumbs .thumb').forEach((t,k)=>{
+      t.classList.toggle('active', k===galleryIdx);
+      if(k===galleryIdx) t.scrollIntoView({block:'nearest', inline:'center', behavior:'smooth'});
+    });
+  }
+
+  /* ----- full-screen photo viewer ----- */
+  let lbIdx = 0, lbEl = null;
+  function onLbKey(e){
+    if(e.key==='Escape') closeLightbox();
+    else if(e.key==='ArrowLeft') lbShow(lbIdx-1);
+    else if(e.key==='ArrowRight') lbShow(lbIdx+1);
+  }
+  function lbShow(i){
+    if(!lbEl) return;
+    const n = curImgs.length; lbIdx = (i + n) % n;
+    lbEl.querySelector('.lb-img').src = curImgs[lbIdx];
+    const c = lbEl.querySelector('.lb-count'); if(c) c.textContent = (lbIdx+1) + ' / ' + n;
+    lbEl.querySelectorAll('.lb-thumbs .thumb').forEach((t,k)=>t.classList.toggle('active', k===lbIdx));
+  }
+  function openLightbox(i){
+    closeLightbox();
+    const n = curImgs.length; if(!n) return;
+    lbEl = document.createElement('div');
+    lbEl.className = 'lightbox';
+    lbEl.innerHTML = `
+      <button class="lb-close" aria-label="Close">×</button>
+      ${n>1 ? `<div class="lb-count"></div>
+      <button class="lb-arrow prev" aria-label="Previous">‹</button>
+      <button class="lb-arrow next" aria-label="Next">›</button>` : ''}
+      <img class="lb-img" alt="" draggable="false">
+      ${n>1 ? `<div class="lb-thumbs">${curImgs.map((s,k)=>`<button class="thumb" data-lb-thumb="${k}"><img src="${s}" alt=""></button>`).join('')}</div>` : ''}`;
+    document.body.appendChild(lbEl);
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onLbKey);
+    lbEl.querySelector('.lb-close').onclick = closeLightbox;
+    lbEl.onclick = e=>{ if(e.target === lbEl) closeLightbox(); };
+    const pv = lbEl.querySelector('.lb-arrow.prev'), nx = lbEl.querySelector('.lb-arrow.next');
+    if(pv) pv.onclick = e=>{ e.stopPropagation(); lbShow(lbIdx-1); };
+    if(nx) nx.onclick = e=>{ e.stopPropagation(); lbShow(lbIdx+1); };
+    lbEl.querySelectorAll('[data-lb-thumb]').forEach(b=>b.onclick = e=>{ e.stopPropagation(); lbShow(Number(b.dataset.lbThumb)); });
+    addSwipe(lbEl, d=>lbShow(lbIdx + d));
+    lbShow(i);
+  }
+  function closeLightbox(){
+    if(!lbEl) return;
+    lbEl.remove(); lbEl = null;
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', onLbKey);
+    if(route().startsWith('/product/')) setGallery(lbIdx);
+  }
+  // swipe left/right on a touch screen (ignored when the customer is pinch-zooming)
+  function addSwipe(el, cb){
+    let x0 = null, y0 = 0, moved = false;
+    el.addEventListener('touchstart', e=>{ if(e.touches.length===1){ x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; moved = false; } else x0 = null; }, {passive:true});
+    el.addEventListener('touchmove', ()=>{ moved = true; }, {passive:true});
+    el.addEventListener('touchend', e=>{
+      if(x0 === null || !moved) return;
+      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      if(Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)*1.5){ el._swiped = true; setTimeout(()=>el._swiped=false, 350); cb(dx < 0 ? 1 : -1); }
+      x0 = null;
+    });
   }
 
   function viewCart(){
@@ -219,7 +402,7 @@ function start(){
       const p = products.find(x=>x.id===c.id);
       if(!p) return '';
       return `<div class="cart-row">
-        <img src="${p.image || placeholderImg(p.name)}">
+        <img src="${thumbOf(p)}">
         <div class="info">
           <div style="font-weight:600">${escapeHtml(p.name)}</div>
           <div class="muted">${money(p.price)} each</div>
@@ -239,7 +422,57 @@ function start(){
     </div>`;
   }
 
+  function upiBoxHtml(){
+    const upi = (settings.upiId || '').trim();
+    if(!upi) return `<div class="upi-box"><b>Online payment is not available right now.</b><div class="note">Please choose WhatsApp Order instead.</div></div>`;
+    const total = cartTotal();
+    const payLink = /@/.test(upi)
+      ? `upi://pay?pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent(settings.shopName)}&am=${total}&cu=INR&tn=${encodeURIComponent('Saree order')}`
+      : '';
+    return `<div class="upi-box">
+      <div><b>Step 1: Pay this amount</b></div>
+      <div class="upi-amount">${money(total)}</div>
+      <div style="margin-top:.5em;"><b>To this UPI ID / number</b></div>
+      <div class="upi-id"><code id="upi-text">${escapeHtml(upi)}</code>
+        <button type="button" class="btn small gold" data-copy-upi style="padding:.4em .8em;">Copy</button>
+        ${payLink ? `<a class="btn small" style="padding:.4em .8em;" href="${escapeHtml(payLink)}">Open UPI app</a>` : ''}
+      </div>
+      <div class="note">Use any UPI app (GPay, PhonePe, Paytm…). Please pay the exact amount shown above.</div>
+      <div style="margin-top:1em;"><b>Step 2: Upload the payment screenshot</b></div>
+      <input type="file" id="ck-shot" accept="image/*" style="margin-top:.4em;">
+      <img id="ck-shot-prev" class="shot-preview" alt="Payment screenshot" style="${shot?'':'display:none;'}" ${shot?`src="${shot}"`:''}>
+      <div class="note">Your order is confirmed only after we check this screenshot against our payment.</div>
+    </div>`;
+  }
+  function refreshUpi(){
+    const slot = document.getElementById('upi-slot');
+    const sel = document.querySelector('input[name="pay"]:checked');
+    if(!slot || !sel) return;
+    if(sel.value === 'online'){ slot.innerHTML = upiBoxHtml(); slot.style.display = 'block'; attachUpiHandlers(); }
+    else { slot.style.display = 'none'; slot.innerHTML = ''; }
+  }
+  function attachUpiHandlers(){
+    const copy = document.querySelector('[data-copy-upi]');
+    if(copy) copy.onclick = async ()=>{
+      const t = (settings.upiId||'').trim();
+      try{ await navigator.clipboard.writeText(t); toast('UPI ID copied'); }
+      catch(e){
+        const r = document.createRange(); r.selectNodeContents(document.getElementById('upi-text'));
+        const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); toast('Press and hold to copy');
+      }
+    };
+    const f = document.getElementById('ck-shot');
+    if(f) f.onchange = async ()=>{
+      const file = f.files[0]; if(!file) return;
+      try{
+        shot = await resizeImage(file, 900, 0.7);
+        const pv = document.getElementById('ck-shot-prev'); pv.src = shot; pv.style.display = 'block';
+      }catch(e){ toast('Could not read that image'); }
+    };
+  }
+
   function viewCheckout(){
+    shot = null;
     if(cart.length===0) return `<div class="empty">Your cart is empty. <a href="#/">Browse sarees</a></div>`;
     return `
     <h2>Delivery Details</h2>
@@ -251,16 +484,13 @@ function start(){
         <label>Payment Option</label>
         <label class="pay-opt selected">
           <input type="radio" name="pay" value="whatsapp" checked>
-          <div><b>WhatsApp Order</b><div class="note">Send your order to us on WhatsApp. We'll confirm availability, final price and delivery, then arrange payment or COD.</div></div>
-        </label>
-        <label class="pay-opt">
-          <input type="radio" name="pay" value="cod">
-          <div><b>Cash on Delivery</b><div class="note">Pay in cash when your order is delivered.</div></div>
+          <div><b>WhatsApp Order</b><div class="note">Send your order to us on WhatsApp. We'll confirm availability, final price and delivery, then arrange payment.</div></div>
         </label>
         <label class="pay-opt">
           <input type="radio" name="pay" value="online">
-          <div><b>Online Payment (UPI)</b><div class="note">We'll share a UPI/payment link after confirming your order. ${settings.upiId? 'UPI ID: '+escapeHtml(settings.upiId):''}</div></div>
+          <div><b>Online Payment (UPI)</b><div class="note">Pay to our UPI ID and upload the payment screenshot. We verify it and confirm your order.</div></div>
         </label>
+        <div id="upi-slot" style="display:none;"></div>
         <button class="btn" style="width:100%;margin-top:1em;" data-confirm-order>Confirm Order</button>
       </div>
       <div class="panel" style="flex:1;">
@@ -271,21 +501,49 @@ function start(){
     </div>`;
   }
 
+  function watchOrder(oid){
+    if(!oid || watchingOid === oid) return;
+    if(unsubOrder) unsubOrder();
+    watchingOid = oid; liveStatus = null;
+    unsubOrder = onSnapshot(doc(db,'orders',oid), snap=>{
+      liveStatus = snap.exists() ? snap.data().status : null;
+      if(route() === '/order-success') render();
+    }, ()=>{});
+  }
+
   function viewOrderSuccess(){
-    let o = null;
-    try{ o = JSON.parse(sessionStorage.getItem('svf_last_order') || 'null'); }catch(e){}
+    const o = lastOrder();
     if(!o) return `<div class="empty">No recent order. <a href="#/">Go to shop</a></div>`;
-    const msg = o.payment === 'whatsapp'
-      ? 'Your order has been received. If WhatsApp did not open, tap the button below and press Send so we can confirm with you.'
-      : o.payment === 'cod'
-        ? 'Your Cash on Delivery order has been received. We will contact you shortly to confirm.'
-        : 'Your order has been received. We will share the payment details shortly.';
+    watchOrder(o.oid);
+    const st = liveStatus || 'Pending';
+    const online = o.payment === 'online';
+    let title, msg;
+    if(st === 'Cancelled'){
+      title = 'Order cancelled';
+      msg = 'This order was cancelled. If you think this is a mistake, please contact us on WhatsApp.';
+    } else if(st === 'Delivered'){
+      title = 'Order delivered';
+      msg = 'Your order has been delivered. Thank you for shopping with us!';
+    } else if(st === 'Dispatched'){
+      title = 'Order dispatched';
+      msg = 'Your order has been dispatched. You will receive it within 3-4 working days.';
+    } else if(st === 'Confirmed'){
+      title = online ? 'Payment confirmed' : 'Order confirmed';
+      msg = (online ? 'Thank you! We have verified your payment. ' : '') + 'Your order has been received. You will receive your order within 3-4 working days.';
+    } else if(online){
+      title = 'Payment screenshot received';
+      msg = 'Thank you! We are checking your payment. This page will update automatically once your payment is confirmed.';
+    } else {
+      title = 'Order placed';
+      msg = 'Your order has been received. If WhatsApp did not open, tap the button below and press Send so we can confirm with you.';
+    }
     return `
     <div class="panel" style="max-width:500px;margin:2em auto;text-align:center;">
-      <h2 style="color:var(--ok)">Order Placed!</h2>
+      <span class="status-pill ${st.toLowerCase()}">${escapeHtml(st)}</span>
+      <h2 style="color:${st==='Cancelled'?'#A32E2E':'var(--ok)'}">${escapeHtml(title)}</h2>
       <p>Order ID: <b>${escapeHtml(o.id)}</b></p>
       <p>${msg}</p>
-      ${o.waUrl ? `<p><a class="btn wa" href="${escapeHtml(o.waUrl)}" target="_blank" rel="noopener">Send on WhatsApp</a></p>` : ''}
+      ${o.waUrl && st==='Pending' ? `<p><a class="btn wa" href="${escapeHtml(o.waUrl)}" target="_blank" rel="noopener">Send on WhatsApp</a></p>` : ''}
       <a href="#/" class="btn" style="margin-top:.5em;">Continue Shopping</a>
     </div>`;
   }
@@ -295,6 +553,16 @@ function start(){
     document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addToCart(b.dataset.add));
     document.querySelectorAll('[data-qty-plus]').forEach(b=>b.onclick=()=>changeQty(b.dataset.qtyPlus,1));
     document.querySelectorAll('[data-qty-minus]').forEach(b=>b.onclick=()=>changeQty(b.dataset.qtyMinus,-1));
+    document.querySelectorAll('[data-view]').forEach(el=>el.onclick=()=>go('/product/'+el.dataset.view));
+    document.querySelectorAll('[data-thumb]').forEach(b=>b.onclick=()=>setGallery(Number(b.dataset.thumb)));
+    const gp = document.querySelector('[data-gal-prev]'), gn = document.querySelector('[data-gal-next]');
+    if(gp) gp.onclick = e=>{ e.stopPropagation(); setGallery(galleryIdx-1); };
+    if(gn) gn.onclick = e=>{ e.stopPropagation(); setGallery(galleryIdx+1); };
+    const gm = document.querySelector('[data-gal-main]');
+    if(gm){
+      gm.onclick = ()=>{ if(!gm._swiped) openLightbox(galleryIdx); };
+      addSwipe(gm, d=>setGallery(galleryIdx + d));
+    }
     const placeBtn = document.querySelector('[data-place-order]');
     if(placeBtn) placeBtn.onclick = ()=>go('/checkout');
     document.querySelectorAll('.pay-opt').forEach(el=>{
@@ -302,6 +570,7 @@ function start(){
         document.querySelectorAll('.pay-opt').forEach(x=>x.classList.remove('selected'));
         el.classList.add('selected');
         el.querySelector('input').checked = true;
+        refreshUpi();
       };
     });
     const confirmBtn = document.querySelector('[data-confirm-order]');
@@ -315,6 +584,11 @@ function start(){
     const payment = document.querySelector('input[name="pay"]:checked').value;
     if(!name || !phone || !address){ toast('Please fill all delivery details'); return; }
     if(!/^\d{10}$/.test(phone)){ toast('Enter a valid 10-digit phone number'); return; }
+    if(payment === 'online'){
+      if(!(settings.upiId||'').trim()){ toast('Online payment is not available right now. Please choose WhatsApp Order.'); return; }
+      if(!shot){ toast('Please upload your payment screenshot'); return; }
+      if(shot.length > 600000){ toast('Screenshot is too large. Please upload a smaller one.'); return; }
+    }
 
     // final stock check against live data
     for(const c of cart){
@@ -344,10 +618,12 @@ function start(){
     btn.disabled = true; btn.textContent = 'Placing order…';
 
     try{
-      await setDoc(orderRef, {
+      const orderData = {
         name, phone, address, payment, items, total,
         status:'Pending', stockDeducted:false, time: serverTimestamp()
-      });
+      };
+      if(payment === 'online') orderData.screenshot = shot;
+      await setDoc(orderRef, orderData);
     }catch(e){
       console.error(e);
       if(popup) popup.close();
@@ -356,7 +632,8 @@ function start(){
       return;
     }
 
-    try{ sessionStorage.setItem('svf_last_order', JSON.stringify({ id:shortId, payment, waUrl: settings.whatsapp ? waUrl : '' })); }catch(e){}
+    try{ localStorage.setItem('svf_last_order', JSON.stringify({ id:shortId, oid:orderRef.id, payment, waUrl: settings.whatsapp ? waUrl : '' })); }catch(e){}
+    watchingOid = null; liveStatus = null; shot = null;
     cart = []; saveCart();
     if(popup) popup.location.href = waUrl;
     go('/order-success');
